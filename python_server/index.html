@@ -1,0 +1,531 @@
+<html>
+
+<head>
+    <script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+	
+	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="md5.js"></script>
+	<script src="st.js"></script>
+	<script src="v1.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	
+	<script id="item-template" type="text/x-handlebars-template">
+    <div style="">
+       <span>{{{content}}}</span>
+    </div>
+   </script>
+
+	<style>
+
+	#logs {
+	  
+	  /*overflow-x:scroll;*/
+	  
+	  overflow: auto;
+	  /*overflow-x:hidden;*/
+	  witdh: 100%; 
+	 
+	  white-space: pre; 
+	  font-family: monospace; 
+	  /*height: 700px;*/
+	  /*min-witdh: 100%; */
+	  /*border: 1px solid #cccccc;*/
+	  padding: 5px;
+	  
+	}
+	
+	
+	#patterns {
+	  overflow: auto;
+	  witdh: 100%; 
+
+	  /*white-space: pre; */
+	  font-family: monospace; 
+	  padding: 5px;
+	}
+	
+	#patterns > div {
+	  border-bottom: 1px solid #ddd;
+	  
+	}
+	
+	#patterns abbr {
+	  border-bottom: 0px none transparent;
+	  text-decoration: none;
+	}
+	
+	#timeline {
+	  witdh: 100%; 
+	
+	}
+	
+	.tl-tooltip {
+	   white-space: pre-wrap;
+	   word-wrap: break-word;
+	   max-width: 400px;
+	}
+	
+	.log_line {
+	   white-space: pre-wrap;
+	   word-wrap: break-word;
+	   /*display: block;*/
+	   min-width: 100%;
+	   font-size: 14px;
+	}
+	
+	.rules-table {
+		
+		max-width: 100%;
+	}
+	.rules-table td {
+	   white-space: pre-wrap;
+	   word-wrap: break-word;
+	   font-family: monospace;
+	}
+	
+	.rules-table tbody {
+	   max-height: 500px;
+	   overflow: scroll;
+	}
+	
+	
+	 
+	.log_line.trace {
+	    color: #CCCCCC;
+	}
+	
+	.log_line.debug {
+	    color: #000000;
+	    background-color: #f7f7f7;
+	}
+	
+	
+	.log_line.error {
+	    color: #CC0000;
+	    background-color: #ffc4c4;
+	}
+	
+	.log_line.warn {
+	    color: #423c00;
+	    background-color: #fffdc4;
+	}
+	
+	.log_line.info {
+	    color: #0000CC;
+	    background-color: #edf9ff;
+	}
+	
+	.log_line:focus {
+	    background-color: #EEEEEE;
+	}
+	
+	.log_line .priority {
+	   font-weight: bold;
+	}
+	
+	.log_line .count {
+		width: 50px; 
+		display: inline-block; 
+		text-align: right;
+		color: #ccc;
+		font-weight: bold;
+	}
+	
+	.log_line a.check {
+		
+		color: #ccf;
+		text-decoration: none;
+	}
+	
+	.log_line a.check.add {
+		color: #a00;
+	}
+	
+	.log_line a.check.delete {
+		color: #0a0;
+		text-decoration: none;
+	}
+	
+    .log_line .pattern {
+		background-color: rgba(255,0,255,.1); 
+		color: rgba(0,0,0,.2);
+	}
+	
+	.log_line .pattern.number {
+		background-color: rgba(0,200,200,.1); 
+		/*color: rgba(0,0,255,.2);*/
+	}
+	
+	.log_line .pattern.address {
+		background-color: rgba(127,127,0,.1); 
+		/*color: rgba(127,127,0,.2);*/
+	}
+	
+	
+	
+	
+
+	
+	.log_line a.check i {
+		font-size: 14px;
+		vertical-align: middle;
+	}
+	
+	.mdl-layout__tab .mdl-badge.wide[data-badge]:after {
+  		background-color: rgba(0,0,0,.2);
+  		color: white;
+	}
+	
+	
+	.mdl-badge.wide[data-badge]:after {
+  		/*background-color: black;*/
+  		/*color: white;*/
+		border-radius: 10px;
+		font-size: 10px;
+		width: auto;
+		padding: 0px 10px;
+		right: -30px;
+	}
+	
+	
+	
+	
+	</style>
+</head>
+
+
+<body>
+<div class="mdl-layout mdl-js-layout mdl-js-layout mdl-layout--fixed-drawer
+            mdl-layout--fixed-header">
+<header class="mdl-layout__header">
+  <div class="mdl-layout__header-row">
+       <!-- Title -->
+      <span class="mdl-layout-title">File: <span class="id-source-file"></span></span>
+        
+      <!-- Add spacer, to align navigation to the right -->
+      <div class="mdl-layout-spacer"></div>
+      
+      <!-- Navigation. We hide it in small screens. -->
+      <nav class="mdl-navigation mdl-layout--large-screen-only">
+
+      </nav>
+  </div>
+  
+         <!-- Tabs -->
+    <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+      <a href="#tab-patterns" class="mdl-layout__tab is-active">
+	  <span id="patterns_badge_display" class="mdl-badge wide" data-badge="0">Groups</span>
+	  </a>
+      <a href="#tab-logs" class="mdl-layout__tab ">
+	  <span id="logs_badge" class="mdl-badge wide" data-badge="0">Logs</span>
+	  </a>
+      
+      <a href="#tab-timeline" class="mdl-layout__tab">Time</a>
+      <a href="#tab-rules" class="mdl-layout__tab">Filters</a>
+    </div>
+
+</header>
+
+<div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">Logshark</span>
+    
+    <ul class="demo-list-control mdl-list">
+	
+	
+  <li class="mdl-list__item">
+    <span class="mdl-list__item-primary-content">
+      <i class="material-icons ">storage</i>&nbsp;
+      <span id="file_size">0 B </span>&nbsp;total
+	 
+    </span>
+	
+    <span class="mdl-list__item-secondary-action">
+		<button id="file_data_menu"
+		        class="mdl-button mdl-js-button mdl-button--icon">
+		  <i class="material-icons">more_vert</i>
+		</button>
+		<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+		    for="file_data_menu">
+		  <li class="mdl-menu__item" onclick="ClearLogs();">Clear</li>
+		  <li class="mdl-menu__item" onclick="DownloadFile();">Download</li>
+		</ul>
+    </span>
+
+  </li>
+  
+  <li class="mdl-list__item"  style="padding-bottom: 0px;">
+    <span class="mdl-list__item-primary-content">
+      <i class="material-icons ">memory</i>&nbsp;
+      <span id="offset">0 B </span>&nbsp;done
+	 
+    </span>
+	
+    <span class="mdl-list__item-secondary-action">
+		<button id="loaded_data_menu"
+		        class="mdl-button mdl-js-button mdl-button--icon">
+		  <i class="material-icons">more_vert</i>
+		</button>
+		<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+		    for="loaded_data_menu">
+		  <li class="mdl-menu__item" onclick="ClearLoadedData();">Rescsan</li>
+		  <li class="mdl-menu__item" onclick="DownloadLogs();">Save filtered</li>
+		  
+		</ul>
+    </span>
+
+  </li>
+   <li class="mdl-list__item" style="padding: 2px 16px; min-height: 10px; height: auto;">
+   <div id="memory_progress" style="opacity: 0;" class="mdl-progress mdl-js-progress"></div>
+   </li>
+  
+   <li class="mdl-list__item" style="padding-bottom: 0px;">
+    <span class="mdl-list__item-primary-content">
+      <i class="material-icons ">network_check</i>&nbsp;
+      <span id="process_speed"></span>
+    </span>
+    <span class="mdl-list__item-secondary-action">
+
+    </span>
+
+  </li>
+  
+  
+   <li class="mdl-list__item" style="padding: 2px 16px; min-height: 10px; height: auto;">
+   <div id="speed_progress"  style="opacity: 0;" class="mdl-progress mdl-js-progress"></div>
+   </li>
+  
+  
+  <li class="mdl-list__item">
+    <span class="mdl-list__item-primary-content">
+      <i class="material-icons ">view_list</i>&nbsp;
+      <span id="lines">0</span>&nbsp;records
+    </span>
+    <span class="mdl-list__item-secondary-action">
+
+    </span>
+  </li>
+  
+  
+  <li class="mdl-list__item">
+    <span class="mdl-list__item-primary-content">
+	 <button style="margin-left: -3px; margin-right: -3px;" onclick="DumpPatternInfo();" class="mdl-button mdl-js-button mdl-button--icon">
+         <i class="material-icons">sync</i>
+       </button>&nbsp;
+	   <span id="patterns_badge" class="mdl-badge wide" data-badge="0">Sync groups</span>
+      
+    </span>
+    <span class="mdl-list__item-secondary-action">
+	
+	<label onchange="DumpPatternInfo();" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="autoload_patterns">
+      <input type="checkbox" id="autoload_patterns" class="mdl-checkbox__input" checked>
+    </label>
+
+
+       <!--button onclick="DumpPatternInfo();" class="mdl-button mdl-js-button mdl-button--icon">
+         <i class="material-icons">forward</i>
+       </button-->
+    </span>
+  </li>
+  
+  
+  <li class="mdl-list__item">
+    <span class="mdl-list__item-primary-content">
+      <i class="material-icons ">sort</i>&nbsp;
+      Sort by time
+    </span>
+    <span class="mdl-list__item-secondary-action">
+	
+	<label onchange="DumpPatternInfo();" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="timesort_patterns">
+      <input type="checkbox" id="timesort_patterns" class="mdl-checkbox__input">
+    </label>
+
+
+       <!--button onclick="DumpPatternInfo();" class="mdl-button mdl-js-button mdl-button--icon">
+         <i class="material-icons">forward</i>
+       </button-->
+    </span>
+  </li>
+  
+  <li class="mdl-list__item">
+    <span class="mdl-list__item-primary-content">
+      <i class="material-icons ">ballot</i>&nbsp;
+      <span class="id-source-file"></span>
+    </span>
+    <span class="mdl-list__item-secondary-action">
+       <button id="show-filename-dialog" class="mdl-button mdl-js-button mdl-button--icon">
+         <i class="material-icons">open_in_browser</i>
+       </button>
+    </span>
+  </li>
+  
+  
+  
+  
+</ul>
+    
+    
+    <nav class="mdl-navigation">
+ 
+    </nav>
+  </div>
+
+<main class="mdl-layout__content">
+
+	<section class="mdl-layout__tab-panel " id="tab-logs">
+		 <div class="page-content">
+			<div style="" id="logs"></div>
+		</div>
+
+    </section>
+    
+    
+    <section class="mdl-layout__tab-panel is-active" id="tab-patterns">
+		 <div class="page-content">
+			<div style="" id="patterns"></div>
+		</div>
+    </section>
+    
+    
+    <section class="mdl-layout__tab-panel" id="tab-timeline">
+      <div class="page-content">
+		  <div id="timeline"></div>
+      </div>
+    </section>
+    
+    
+     <section class="mdl-layout__tab-panel" id="tab-rules">
+      <div class="page-content">
+		  <div class="mdl-grid">
+			  <div class="mdl-cell mdl-cell--8-col">
+			  
+			  <table id="rules-table" class="rules-table mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+				  <thead>
+				    <tr>
+				      <th class="mdl-data-table__cell--non-numeric">Name</th>
+				      <th class="mdl-data-table__cell--non-numeric">State</th>
+				      <th class="mdl-data-table__cell--non-numeric">Pattern</th>
+				      <th class="mdl-data-table__cell--non-numeric">Label</th>
+				      <th class="mdl-data-table__cell--non-numeric">Group</th>
+				      <th class="mdl-data-table__cell--non-numeric">Tooltip</th>
+				    </tr>
+				  </thead>
+				  <tbody>
+
+				  </tbody>
+				</table>
+			  
+			  </div>
+			  <div class="mdl-cell mdl-cell--4-col">
+			  <button onclick="AddRule(GetDefaultRule());" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
+			      <i class="material-icons">add</i>
+				  Add
+			</button>
+			
+			<button onclick="EditRule();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+			      <i class="material-icons">edit</i>
+				  
+			</button>
+			
+			
+			<button onclick="RemoveRules();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+			      <i class="material-icons">delete</i>
+				  
+			</button>
+			
+			<button onclick="EnableRules();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+			      <i class="material-icons">check_circle_outline</i>
+				  
+			</button>
+			
+			<button onclick="DisableRules();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+			      <i class="material-icons">highlight_off</i>
+				  
+			</button>
+			
+			
+			
+			<!--button onclick="SaveRules();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+			      <i class="material-icons">save_alt</i>
+				  
+			</button-->
+			  </div>
+			</div>
+      </div>
+    </section>
+    
+</main>
+
+  <dialog id="filename-dialog" class="mdl-dialog">
+    <h4 class="mdl-dialog__title">Open file</h4>
+    <div class="mdl-dialog__content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input id-filename" type="text">
+        <label class="mdl-textfield__label" for="sample3">Filename</label>
+      </div>
+    </div>
+    <div class="mdl-dialog__actions">
+      <button type="button" class="mdl-button select">Select</button>
+      <button type="button" class="mdl-button close">Cancel</button>
+    </div>
+  </dialog>
+  
+  
+  <dialog id="rule-dialog" class="mdl-dialog" style="width: 400px;">
+    <h4 class="mdl-dialog__title">Edit rule</h4>
+    <div class="mdl-dialog__content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input name"  value="None" type="text">
+        <label class="mdl-textfield__label">Name</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield">
+         <textarea style="font-family: monospace; font-size: 12px;" class="mdl-textfield__input pattern" type="text" rows= "3" id="sample5" >None</textarea>
+         <label class="mdl-textfield__label" for="sample5">Pattern</label>
+     </div>
+     
+     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input label"  type="text" value="None">
+        <label class="mdl-textfield__label">Label</label>
+     </div>
+     
+     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input group" type="text" value="None">
+        <label class="mdl-textfield__label">Group</label>
+     </div>
+     
+     
+     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input tooltip" type="text" value="None">
+        <label class="mdl-textfield__label">Tooltip</label>
+     </div>
+     
+     
+	 <label id="rule-dialog-enabled-label" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="rule-dialog-enabled">
+	  <input type="checkbox" id="rule-dialog-enabled" class="mdl-checkbox__input">
+	  <span class="mdl-checkbox__label">Enabled</span>
+	</label>
+      
+    </div>
+    <div class="mdl-dialog__actions">
+      <button type="button" class="mdl-button save">Save</button>
+      <button type="button" class="mdl-button close">Cancel</button>
+    </div>
+  </dialog>
+
+
+
+
+</div>
+
+</body>
+
+</html>

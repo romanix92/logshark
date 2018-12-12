@@ -14,7 +14,7 @@ class LogAggClient(object):
     
     def __init__(self, host):
         self.connection = http.client.HTTPConnection(host)
-        self.api_path='/~dpavlyuk/logagg/api.php';
+        self.api_path='/api';
         self.filename="default"
         self.async_logger = AsyncLogger(self)
     
@@ -87,7 +87,7 @@ parser.add_argument('file', help='Filename to store logs')
 args = parser.parse_args()
     
     
-s = LogAggClient("10.46.200.153:8080")
+s = LogAggClient("localhost:8087")
 s.filename = args.file;
 
 try:

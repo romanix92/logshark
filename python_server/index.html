@@ -16,6 +16,7 @@
     <script src="md5.js"></script>
 	<script src="st.js"></script>
 	<script src="v1.js"></script>
+	<script src="file_upload.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	
 	
@@ -259,8 +260,23 @@
 		<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
 		    for="file_data_menu">
 		  <li class="mdl-menu__item" onclick="ClearLogs();">Clear</li>
+		  <li class="mdl-menu__item" onclick="UploadLogs();" id="upload_menu_item">Upload</li>
 		  <li class="mdl-menu__item" onclick="DownloadFile();">Download</li>
 		</ul>
+    </span>
+
+  </li>
+  
+  
+   <li class="mdl-list__item" id="upload_info" style="display: none;">
+    <span class="mdl-list__item-primary-content">
+       <i class="material-icons ">cloud_upload</i>&nbsp;
+      Uploading <span id="upload_size"></span>
+    </span>
+	
+    <span class="mdl-list__item-secondary-action">
+		<div class="mdl-spinner mdl-js-spinner is-active"></div>
+
     </span>
 
   </li>
@@ -581,7 +597,11 @@ tail -qF /var/log/*.log | ./logdump.py <span class="id-source-file"></span></pre
   </dialog>
 
 
-
+<form id="file_upload">
+<input id=test type=file name=test style="visibility:hidden;position:absolute;top:0;left:0" onchange="document.getElementById('info').innerHTML=this.value">
+<input type=button value="get file" onclick="this.form.test.click()">
+<span id="info" style="border:1px solid black">    </span>
+</form>
 
 </div>
 

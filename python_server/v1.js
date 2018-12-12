@@ -826,7 +826,7 @@ function GetLinePattern(time, priority, line) {
              }
              DisplayCounters();
              
-             request_size = Math.round(bps/2+1);
+             request_size = Math.round(bps+1);
              
              
              GetFileSize();
@@ -840,7 +840,7 @@ function GetLinePattern(time, priority, line) {
     var filters_enabled = true; //IsFiltersEnabled();
     var load_start = vis.moment();
     
-    var request_size = 1024*1024;
+    var request_size = 10*1024*1024;
     
     function Loader() {
        OnResize();

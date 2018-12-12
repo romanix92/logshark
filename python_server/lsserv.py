@@ -9,7 +9,9 @@ from urllib.parse import urlparse, urlencode, quote_plus, parse_qs
 from socketserver import ThreadingMixIn
 import threading
 import os.path
-
+from datetime import datetime
+import json
+from base64 import b64encode, b64decode
 
 
 #from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
@@ -97,16 +99,17 @@ class myHandler(BaseHTTPRequestHandler):
             action = qs["action"][-1]
             filename=""
             
-            if (action in ["get", "get_size", "log", "truncate"]):
+            if (action in ["get", "get_size", "log", "truncate", "list_dir"]):
                 filename=qs["file"][-1]
-                storage_dir=os.path.realpath(os.path.join(curdir, "storage"))
+
+                storage_path= "storage"
+                storage_dir=os.path.realpath(os.path.join(curdir, storage_path))
                 filepath = os.path.realpath(os.path.join(storage_dir, filename))
-    
-                
+                    
                 if not filepath.startswith(storage_dir):
                     self.send_error(403, "forbidden to access: {}".format(filename))
                     return
-                if not action in ("log",):
+                if not action in ("log"):
                     if (not os.path.exists(filepath)):
                         self.send_error(404, "file not found: {}".format(filename))
                         return
@@ -117,6 +120,7 @@ class myHandler(BaseHTTPRequestHandler):
             if action=="get":
                 self.send_response(200)
                 self.send_header('Content-type', "text/plain")
+                self.send_header('Content-Disposition', 'attachment; filename="'+os.path.basename(filename)+'.txt"')
                 self.end_headers()
                 with open(filepath, 'rb') as f:
                     if "offset" in qs:
@@ -147,10 +151,35 @@ class myHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', "text/plain")
                 self.end_headers()
+            elif action=="list_dir":
+                files = os.listdir(filepath)
+                dir_list = []
+                file_list = []
+                for name in files:
+                    full_path = filepath + "/" + name
+                    params = {}
+                    params['create'] = str(os.path.getctime(full_path))
+                    params['change'] = str(os.path.getmtime(full_path))
+                    params['name'] = name
+                    params['size'] = str(os.path.getsize(full_path))
+                    if os.path.isdir(full_path):
+                        dir_list.append(params)
+                    else:
+                        file_list.append(params)
+                reply = {}
+                if dir_list:
+                    reply["dir"] = dir_list
+                if file_list:
+                    reply["files"] = file_list
+                #json_dict = json.loads(json.dumps(reply))
+                self.send_response(200)
+                self.send_header('Content-type', "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(reply).encode())
 
         except (IndexError, KeyError) as e:
             self.send_response(500)
-            self.send_header('Content-type', "text/plain")
+            self.send_header('Content-type', "text/3plain")
             self.end_headers()
             self.wfile.write("500 - internal error".encode())
         

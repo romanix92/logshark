@@ -117,6 +117,7 @@ class myHandler(BaseHTTPRequestHandler):
             if action=="get":
                 self.send_response(200)
                 self.send_header('Content-type', "text/plain")
+                self.send_header('Content-Disposition', 'attachment; filename="'+os.path.basename(filename)+'.txt"')
                 self.end_headers()
                 with open(filepath, 'rb') as f:
                     if "offset" in qs:

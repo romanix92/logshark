@@ -579,17 +579,25 @@ function GetLinePattern(time, priority, line) {
     }
     
     function SaveRules() {
-        
-         $.ajax({
-          type: "POST",
-          data: JSON.stringify(GenerateFilterTable({state:"OFF"})),
-          url: "api?action=save_rules",
-          success: function(result) {
-              
-          },
-        });
+    	
+    	SaveToFile(JSON.stringify(GenerateFilterTable({state:"OFF"})), "filters.json", "application/json");
         
         //componentHandler.upgradeDom()
+    }
+    
+    function ImportRules() {
+    	ShowLoadFileDialog(function(result){
+
+    		var rules = JSON.parse(result);
+            
+            for (var i in rules) {
+               var rule = rules[i];
+               AddRule(rule);
+            }
+
+            search_table=GenerateFilterTable({state:"OFF"});
+    	});
+    	
     }
     
     
@@ -841,7 +849,22 @@ function GetLinePattern(time, priority, line) {
        $.ajax({
           url: "api?action=get&file="+target_file+"&offset="+offset+"&length="+request_size,
           context: document.body,
-          success: HandleData
+          success: HandleData,
+          statusCode: {
+        	    404: function() {
+        	        alert('Not found!');
+        	    	$.ajax({
+        	            type: "POST",
+        	            data:"",
+        	            url: "api?action=log&file="+target_file,
+        	            success: function(result){
+        	                alert("New file created: " + target_file);
+        	                Loader();
+        	            }
+        	    	});
+        	    	
+        	    },
+        	  }
        }).done(function() {
           //$( this ).addClass( "done" );
           //Loader();
@@ -857,6 +880,7 @@ function GetLinePattern(time, priority, line) {
 
         var filename_dialog = document.querySelector('#filename-dialog');
         $("#filename-dialog input.id-filename").val(c_filename ? c_filename : "");
+        RequestFileList(".");
         filename_dialog.showModal();
     }
     
@@ -907,8 +931,7 @@ function GetLinePattern(time, priority, line) {
         
         filename_dialog.querySelector('.select').addEventListener('click', function() {
           var new_filename = $("#filename-dialog input.id-filename").val();
-          SetFilename(new_filename);
-          filename_dialog.close();
+          ChooseFilename(new_filename);
         });
         
         filename_dialog.querySelector('.close').addEventListener('click', function() {

@@ -232,6 +232,7 @@
       
       <a href="#tab-timeline" class="mdl-layout__tab">Time</a>
       <a href="#tab-rules" class="mdl-layout__tab">Filters</a>
+      <a href="#tab-help" class="mdl-layout__tab">Help</a>
     </div>
 
 </header>
@@ -460,6 +461,14 @@
 			</button-->
 			  </div>
 			</div>
+      </div>
+    </section>
+    
+     <section class="mdl-layout__tab-panel" id="tab-help">
+      <div class="page-content" style="padding: 10px;">
+<pre>wget http://il-amazon1/~dpavlyuk/logshark/logdump.py -O logdump.py
+chmod +x logdump.py
+tail -qF /var/log/*.log | ./logdump.py <span class="id-source-file"></span></pre>
       </div>
     </section>
     

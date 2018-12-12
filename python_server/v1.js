@@ -565,17 +565,25 @@ function GetLinePattern(time, priority, line) {
     }
     
     function SaveRules() {
-        
-         $.ajax({
-          type: "POST",
-          data: JSON.stringify(GenerateFilterTable({state:"OFF"})),
-          url: "api?action=save_rules",
-          success: function(result) {
-              
-          },
-        });
+    	
+    	SaveToFile(JSON.stringify(GenerateFilterTable({state:"OFF"})), "filters.json", "application/json");
         
         //componentHandler.upgradeDom()
+    }
+    
+    function ImportRules() {
+    	ShowLoadFileDialog(function(result){
+
+    		var rules = JSON.parse(result);
+            
+            for (var i in rules) {
+               var rule = rules[i];
+               AddRule(rule);
+            }
+
+            search_table=GenerateFilterTable({state:"OFF"});
+    	});
+    	
     }
     
     

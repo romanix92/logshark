@@ -198,6 +198,14 @@
 		right: -30px;
 	}
 	
+	.dlg-file-list li{
+		margin: 0px;
+	}
+	
+	.dlg-file-list li:hover{
+		background-color: #ccc;
+	}
+	
 	
 	
 	
@@ -470,12 +478,15 @@
 				  
 			</button>
 			
+			<br><br>
 			
+			<button onclick="ImportRules();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+			      <i class="material-icons">get_app</i> Import
+			</button>
 			
-			<!--button onclick="SaveRules();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
-			      <i class="material-icons">save_alt</i>
-				  
-			</button-->
+			<button onclick="SaveRules();" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+			      <i class="material-icons">save</i> Export
+			</button>
 			  </div>
 			</div>
       </div>
@@ -491,13 +502,53 @@ tail -qF /var/log/*.log | ./logdump.py <span class="id-source-file"></span></pre
     
 </main>
 
-  <dialog id="filename-dialog" class="mdl-dialog">
+  <dialog id="filename-dialog" class="mdl-dialog" style="width: 400px;">
     <h4 class="mdl-dialog__title">Open file</h4>
     <div class="mdl-dialog__content">
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input id-filename" type="text">
         <label class="mdl-textfield__label" for="sample3">Filename</label>
       </div>
+      
+      <ul class="dlg-file-list mdl-list" style="display: none;">
+	  <li class="mdl-list__item mdl-list__item--three-line">
+	    <span class="mdl-list__item-primary-content">
+	      <i class="material-icons mdl-list__item-icon">folder</i>
+	      <span>Bryan Cranston</span>
+	      <span class="mdl-list__item-text-body">
+	        Created, modified
+	      </span>
+	    </span>
+	    <span class="mdl-list__item-secondary-content">
+	      
+	    </span>
+	  </li>
+	  <li class="mdl-list__item mdl-list__item--three-line">
+	    <span class="mdl-list__item-primary-content">
+	      <i class="material-icons mdl-list__item-icon">folder</i>
+	      <span>Aaron Paul</span>
+	      <span class="mdl-list__item-text-body">
+	        Created, modified
+	      </span>
+	    </span>
+	    <span class="mdl-list__item-secondary-content">
+	      
+	    </span>
+	  </li>
+	  <li class="mdl-list__item mdl-list__item--three-line">
+	    <span class="mdl-list__item-primary-content">
+	      <i class="material-icons mdl-list__item-icon">insert_drive_file</i>
+	      <span>Bob Odenkirk</span>
+	      <span class="mdl-list__item-text-body">
+	        Created, modified
+	      </span>
+	    </span>
+	    <span class="mdl-list__item-secondary-content">
+	      
+	    </span>
+	  </li>
+	</ul>
+
     </div>
     <div class="mdl-dialog__actions">
       <button type="button" class="mdl-button select">Select</button>
@@ -548,9 +599,8 @@ tail -qF /var/log/*.log | ./logdump.py <span class="id-source-file"></span></pre
   </dialog>
 
 
-<form id="file_upload">
-<input id=test type=file name=test style="visibility:hidden;position:absolute;top:0;left:0" onchange="document.getElementById('info').innerHTML=this.value">
-<input type=button value="get file" onclick="this.form.test.click()">
+<form id="file_upload" style="position: absolute; z-index: -999; visibility:hidden;">
+<input id=test type=file name=test style="visibility:hidden;position:absolute;top:0;left:0">
 <span id="info" style="border:1px solid black">    </span>
 </form>
 

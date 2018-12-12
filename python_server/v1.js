@@ -7,6 +7,14 @@ function escapeRegExp(string) {
 }
 
 
+var draw_items = [
+        {x: '2014-06-11', y: 10},
+        {x: '2014-06-12', y: 25},
+        {x: '2014-06-13', y: 30},
+        {x: '2014-06-14', y: 10},
+        {x: '2014-06-15', y: 15},
+        {x: '2014-06-16', y: 30}
+];
 
 function GetLinePattern(time, priority, line) {
     line=line.replace("\t", " ");
@@ -121,6 +129,11 @@ function GetLinePattern(time, priority, line) {
     var items = new vis.DataSet({
         type: { start: 'ISODate', end: 'ISODate' }
     });
+
+    var graph_items = new vis.DataSet({
+        type: { start: 'ISODate', end: 'ISODate' }
+    });
+
     
     var view = new vis.DataView(items, {
       filter: function (item) {
@@ -173,6 +186,7 @@ function GetLinePattern(time, priority, line) {
    };
    
    var timeline;
+   var graph;
    
    
    var target_file = "";
@@ -290,7 +304,15 @@ function GetLinePattern(time, priority, line) {
                }
                if (item.group != "hide") {
                   items.add([item]);
-               }
+                  var graphFilter = document.getElementById('graph-filter-name');
+
+                  //console.log("entry.name == " + entry.name);
+                  //console.log("graphFilter.value = " + graphFilter.value);
+                  if (entry.name == graphFilter.value) {
+                      //console.log("filter matches");
+                      graph_items.add(item);
+                  }  
+             }
                
                return true;
                break;
@@ -325,6 +347,7 @@ function GetLinePattern(time, priority, line) {
         //$("#patterns").html("");
         pattern_table={};
         items.clear();
+        graph_items.clear()
         prev_entry = null;
         prev_level = "";
         prev_add = false;
@@ -775,7 +798,8 @@ function GetLinePattern(time, priority, line) {
                     //});
                 }
                  
-                 
+                
+                updateGraph(); 
              
                  
 
@@ -888,7 +912,15 @@ function GetLinePattern(time, priority, line) {
         timeline = new vis.Timeline(container, view, groups, options);
         timeline.setOptions({ orientation: {axis: "both", item: "top"} });
         
-        
+        //graph tab 
+        var graph_container = document.getElementById('graph-drawing');
+
+        var graph_dataset = new vis.DataSet(draw_items);
+        var graph_options = {
+                start: '2014-06-10',
+                end: '2014-06-18'
+        };
+        var graph2d = new vis.Graph2d(graph_container, graph_dataset, graph_options);
         
         
         var filename_dialog = document.querySelector('#filename-dialog');
@@ -950,5 +982,40 @@ function GetLinePattern(time, priority, line) {
         });
 
     });
+
+//$("label[for=option-rate]").click(function(){
+//        console.log("RATE onClick");
+//        $("#graph-rate-settings").show();
+//        $("#graph-count-settings").hide();
+//        $("#graph-value-settings").hide();
+//        });
+
+function onClickRateRadio(radio) {
+        $("#graph-rate-settings").show();
+        $("#graph-count-settings").hide();
+        $("#graph-value-settings").hide();
+}
     
-    
+function onClickCountRadio(radio) {
+        $("#graph-rate-settings").hide();
+        $("#graph-count-settings").show();
+        $("#graph-value-settings").hide();
+}
+
+function onClickValueRadio(radio) {
+        $("#graph-rate-settings").hide();
+        $("#graph-count-settings").hide();
+        $("#graph-value-settings").show();
+}
+
+function updateGraph() {
+//    draw_items.length = 0;
+//    draw_items = [
+//        {x: '2014-06-11', y: 10},
+//        {x: '2014-06-12', y: 25},
+//        {x: '2014-06-13', y: 30},
+//        {x: '2014-06-14', y: 10},
+//        {x: '2014-06-15', y: 15},
+//        {x: '2014-06-16', y: 30}
+//    ];
+}

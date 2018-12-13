@@ -1029,7 +1029,7 @@ function updateGraph() {
         interpolation: false
     };
     //draw_items.length = 0;
-    console.log(graph_items_offset);
+    //console.log(graph_items_offset);
     if (document.getElementById("option-rate").checked) {
         updateRateGraph();
         //graph_options.style = 'bar';
@@ -1061,6 +1061,8 @@ function updateRateGraph() {
     var count = 0;
     for (var i = graph_items_offset; i < graph_items.length; ++i) {
     //for (var i = 0; i < graph_items.length; ++i) {
+        //console.log(interval_start);
+        //console.log(interval_end);
         if (graph_items[i].start < interval_end) {
             ++count;
         } else {

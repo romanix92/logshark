@@ -87,6 +87,14 @@
 	
 	}
 	
+	#timeline .menu {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 10px;
+            z-index: 9999;
+        }
+	
 	.tl-tooltip {
 	   white-space: pre-wrap;
 	   word-wrap: break-word;
@@ -453,7 +461,30 @@
     
     <section class="mdl-layout__tab-panel" id="tab-timeline">
       <div class="page-content">
-		  <div id="timeline"></div>
+		  <div id="timeline">
+		  <div class="menu">
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="timeline.zoomIn(0.2);">
+			  <i class="material-icons">zoom_in</i>
+			</button>
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="timeline.zoomOut(0.2);">
+			  <i class="material-icons">zoom_out</i>
+			</button>
+			
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="MoveTimeline(0.2);">
+			  <i class="material-icons">arrow_back</i>
+			</button>
+			
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="MoveTimeline(-0.2);">
+			  <i class="material-icons">arrow_forward</i>
+			</button>
+			
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="timeline.fit();">
+			  <i class="material-icons">gps_fixed</i>
+			</button>
+
+			
+    		</div>
+		  </div>
       </div>
     </section>
     

@@ -717,7 +717,7 @@ function GetLinePattern(time, priority, line) {
              HandleProcessedBytes(result.length);
              var d = $('#logs');
              var need_scroll = (d[0].scrollHeight - d.scrollTop() - d.outerHeight()) < 5;
-
+             
              if (result.length>0) {
                  
                  
@@ -820,7 +820,7 @@ function GetLinePattern(time, priority, line) {
              } else {
                  setTimeout(Loader, 50);
                  if (need_scroll) {
-                     timeline.fit();
+                     //timeline.fit();
                  }
                  
              }
@@ -836,7 +836,9 @@ function GetLinePattern(time, priority, line) {
              }
              DisplayCounters();
              
-             request_size = Math.round(bps+1);
+             if (result.length>0) {
+                  request_size = Math.round(bps*0.9+1);
+             }
              
              
              GetFileSize();
@@ -1084,4 +1086,14 @@ function ShowMessage(text) {
     var data = {message: text};
     snackbarContainer.MaterialSnackbar.showSnackbar(data);
 
+}
+
+function MoveTimeline(percentage) {
+    var range = timeline.getWindow();
+    var interval = range.end - range.start;
+
+    timeline.setWindow({
+        start: range.start.valueOf() - interval * percentage,
+        end:   range.end.valueOf()   - interval * percentage
+    });
 }

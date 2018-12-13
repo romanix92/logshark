@@ -268,7 +268,7 @@ function GetLinePattern(time, priority, line) {
     }
     
     
-    
+    var st_regex_cache = {}
     
     function LogHandler(item) {
     
@@ -277,8 +277,19 @@ function GetLinePattern(time, priority, line) {
         for (var i in search_table) {
            var entry = search_table[i];
            if (entry.state != "ON") continue;
-           var log_regex = new RegExp(entry.pattern, "gm");
-           var m = log_regex.exec(item.message.replace("\t", " "));
+           var pt_hash = hashCode(entry.pattern);
+           if (!st_regex_cache.hasOwnProperty(pt_hash)) {
+               st_regex_cache[pt_hash] = {
+            		   pattern: entry.pattern,
+            		   regex: new RegExp(entry.pattern, "gm")
+               };
+           }
+           var rgxi = st_regex_cache[pt_hash];
+           
+           // Check for hash collisions
+           var regex = (rgxi.pattern == entry.pattern) ? rgxi.regex : new RegExp(entry.pattern, "gm");
+           
+           var m = regex.exec(item.message.replace("\t", " "));
            if (m) {
                function replacer(match, p1, offset, string) {
                   var i = parseInt(p1);
@@ -290,7 +301,7 @@ function GetLinePattern(time, priority, line) {
                item.content=entry.label.replace(rep_rg, replacer);
                item.title='<div class="tl-tooltip">'+entry.tooltip.replace(rep_rg, replacer)+'</div>';
                item.group=entry.group.replace(rep_rg, replacer);
-               if (item.group!="main" && item.group!="hide") {
+               if (item.group!="main" && item.group!="hide" && item.group!="") {
                  AddCmMac(item.group);
                }
                if (item.group != "hide") {
@@ -699,7 +710,7 @@ function GetLinePattern(time, priority, line) {
         }
     }
     
-    
+    var log_root_regex = /((\d{4}-\d\d-\d\d \d\d:\d\d:\d\d,\d{3})|(\d\d\/\d\d\/\d{4} \d\d:\d\d:\d\d\.\d{3})) ([A-Za-z]+) (.*)|(.+)/gm;
     
     function HandleData(result) {
         offset+=result.length;
@@ -711,12 +722,12 @@ function GetLinePattern(time, priority, line) {
                  
                  
                  var m;
-                 var regex = /((\d{4}-\d\d-\d\d \d\d:\d\d:\d\d,\d{3})|(\d\d\/\d\d\/\d{4} \d\d:\d\d:\d\d\.\d{3})) ([A-Za-z]+) (.*)|(.+)/gm;
+                 
                  
      
-                 while ((m = regex.exec(result)) !== null) {
+                 while ((m = log_root_regex.exec(result)) !== null) {
                     // This is necessary to avoid infinite loops with zero-width matches
-                    if (m.index === regex.lastIndex) {
+                    if (m.index === log_root_regex.lastIndex) {
                         regex.lastIndex++;
                     }
                     lines+=1;
@@ -852,13 +863,13 @@ function GetLinePattern(time, priority, line) {
           success: HandleData,
           statusCode: {
         	    404: function() {
-        	        alert('Not found!');
+        	        //ShowMessage("File not found, creating new one...");
         	    	$.ajax({
         	            type: "POST",
         	            data:"",
         	            url: "api?action=log&file="+target_file,
         	            success: function(result){
-        	                alert("New file created: " + target_file);
+        	            	ShowMessage("New file created: " + target_file);
         	                Loader();
         	            }
         	    	});
@@ -1066,4 +1077,11 @@ function updateValueGraph() {
         {x: '2018-12-15', y: 15},
         {x: '2018-12-16', y: 30}
     ];
+}
+
+function ShowMessage(text) {
+    var snackbarContainer = document.querySelector('#root_snackbar');
+    var data = {message: text};
+    snackbarContainer.MaterialSnackbar.showSnackbar(data);
+
 }

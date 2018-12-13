@@ -123,8 +123,11 @@ function GetLinePattern(time, priority, line) {
     });
 
     var graph_items = [];
+    var graph_items_offset = 0;
 
-    var draw_items = []; 
+    var draw_items = [];
+
+    var graphFilter;
 
     var view = new vis.DataView(items, {
       filter: function (item) {
@@ -295,16 +298,11 @@ function GetLinePattern(time, priority, line) {
                }
                if (item.group != "hide") {
                   items.add([item]);
-                  var graphFilter = document.getElementById('graph-filter-name');
-
-                  //console.log("entry.name == " + entry.name);
-                  //console.log("graphFilter.value = " + graphFilter.value);
-                  if (entry.name == graphFilter.value) {
-                      console.log("filter matches");
-                      graph_items.push(item);
-                  }  
              }
-               
+               if (entry.name == graphFilter.value) {
+                   graph_items.push(item);
+               }
+
                return true;
                break;
            }
@@ -339,6 +337,8 @@ function GetLinePattern(time, priority, line) {
         pattern_table={};
         items.clear();
         graph_items.length = 0;
+        graph_items_offset = 0;
+        draw_items.length = 0;
         prev_entry = null;
         prev_level = "";
         prev_add = false;
@@ -769,9 +769,10 @@ function GetLinePattern(time, priority, line) {
                     
                     if (filters_enabled) {
                        try {
-                          prev_add=LogHandler(item);
+                           prev_add=LogHandler(item);
                        } catch (e) {
-                          console.log(item);
+                           console.log(e);
+                           console.log(item);
                        }
                     }
 
@@ -789,14 +790,15 @@ function GetLinePattern(time, priority, line) {
                     //});
                 }
                  
-                
-                updateGraph(); 
-             
-                 
+                try {
+                    updateGraph();
+                } catch (e) {
+                    console.log("updateGraph failed");
+                    console.log(e);
+                }
 
                  //$('#logs').text( $('#logs').text() + result )
-                 
-                 
+
                  if (need_scroll) {
                      d.scrollTop(d.prop("scrollHeight"));
                  }
@@ -938,7 +940,7 @@ function GetLinePattern(time, priority, line) {
           filename_dialog.close();
         });
 
-
+        graphFilter = document.getElementById('graph-filter-name');
 
         var dialog = document.querySelector('#rule-dialog');
        
@@ -1009,61 +1011,94 @@ function updateGraph() {
         console.log("no graph items");
         return;
     }
+    var graph_options = {
+        drawPoints: false,
+        interpolation: false
+    };
     //draw_items.length = 0;
+    console.log(graph_items_offset);
     if (document.getElementById("option-rate").checked) {
         updateRateGraph();
+        //graph_options.style = 'bar';
+        //graph_options.barChart  = {width:10, minWidth:10, align:'left', sideBySide:false};
     } else if (document.getElementById("option-count").checked) {
         updateCountGraph();
     } else if (document.getElementById("option-value").checked) {
         updateValueGraph();
     }
-    var graph_dataset = new vis.DataSet(draw_items);
-    var graph_options = {
-        start: graph_items[0].start.format('MM/DD/YYYY HH:mm:ss'),
-        end: graph_items[graph_items.length - 1].start.format('MM/DD/YYYY HH:mm:ss')
-    };
-    var graph_container = document.getElementById('graph-drawing');
-    graph_container.innerHTML = ""
+    //console.log(draw_items);
+    if (draw_items.length != 0) {
+        graph_options.start = draw_items[0].x;
+        graph_options.end = draw_items[draw_items.length - 1].x;
 
-    var graph2d = new vis.Graph2d(graph_container, graph_dataset, graph_options);
+        var graph_dataset = new vis.DataSet(draw_items);
+        var graph_container = document.getElementById('graph-drawing');
+        graph_container.innerHTML = "";
+
+        var graph2d = new vis.Graph2d(graph_container, graph_dataset, graph_options);
+    }
 }
 
 
 function updateRateGraph() {
     console.log("updateRateGr");
-    for (item in graph_items) {
-        console.log(item)
+    var interval = document.getElementById('graph-rate-interval').value;
+    var interval_start = graph_items[0].start;
+    var interval_end = interval_start.add(interval, 's');
+    var count = 0;
+    for (var i = graph_items_offset; i < graph_items.length; ++i) {
+    //for (var i = 0; i < graph_items.length; ++i) {
+        if (graph_items[i].start < interval_end) {
+            ++count;
+        } else {
+            var date_time = interval_end.format('MM/DD/YYYY HH:mm:ss');
+            draw_items.push({
+                x: date_time,
+                y: count
+            });
+            count = 1;
+            interval_start = graph_items[i].start;
+            interval_end = interval_start.add(interval, 's');
+            graph_items_offset = i;
+        }
     }
-    draw_items = [
-        {x: '2018-12-11', y: 10},
-        {x: '2018-12-12', y: 25},
-        {x: '2018-12-13', y: 30},
-        {x: '2018-12-14', y: 10},
-        {x: '2018-12-15', y: 15},
-        {x: '2018-12-16', y: 30}
-    ];
+    /*draw_items.push({
+        x: interval_end.format('MM/DD/YYYY HH:mm:ss'),
+        y: count
+    });*/
 }
 
 function updateCountGraph() {
     console.log("updateCountGr");
-    for (i in graph_items) {
-        //console.log(graph_items[i].start)
-        //console.log(typeof(graph_items[i].start))
-        draw_items.push({
-            x: graph_items[i].start.format('MM/DD/YYYY HH:mm:ss'),
-            y: i
-        })
+    for (var i = graph_items_offset; i < graph_items.length; ++i) {
+        var date_time = graph_items[i].start.format('MM/DD/YYYY HH:mm:ss');
+        if (draw_items.length == 0 || date_time != draw_items[draw_items.length - 1].x) {
+            draw_items.push({
+                x: date_time,
+                y: i
+            });
+        } else {
+            //console.log("Date match")
+            draw_items[draw_items.length - 1].y = i;
+        }
     }
+    graph_items_offset = graph_items.length;
 }
 
 function updateValueGraph() {
     console.log("updateValueGr");
-    draw_items = [
-        {x: '2018-12-11', y: 10},
-        {x: '2018-12-12', y: 25},
-        {x: '2018-12-13', y: 30},
-        {x: '2018-12-14', y: 10},
-        {x: '2018-12-15', y: 15},
-        {x: '2018-12-16', y: 30}
-    ];
+    var pattern = new RegExp(document.getElementById('graph-value-pattern').value);
+    for (var i = graph_items_offset; i < graph_items.length; ++i) {
+        var date_time = graph_items[i].start.format('MM/DD/YYYY HH:mm:ss');
+        var val = pattern.exec(graph_items[i].message);
+        //console.log(pattern);
+        //console.log(val);
+        if (val != null) {
+            draw_items.push({
+                x: date_time,
+                y: parseInt(val[0])
+            });
+        }
+    }
+    graph_items_offset = graph_items.length;
 }

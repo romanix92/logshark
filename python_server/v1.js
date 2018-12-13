@@ -124,6 +124,7 @@ function GetLinePattern(time, priority, line) {
 
     var graph_items = [];
     var graph_items_offset = 0;
+    var graph2d;
 
     var draw_items = [];
 
@@ -1046,9 +1047,14 @@ function updateGraph() {
 
         var graph_dataset = new vis.DataSet(draw_items);
         var graph_container = document.getElementById('graph-drawing');
-        graph_container.innerHTML = "";
 
-        var graph2d = new vis.Graph2d(graph_container, graph_dataset, graph_options);
+        if (graph2d == null) {
+            graph_container.innerHTML = "";
+            graph2d = new vis.Graph2d(graph_container, graph_dataset, graph_options);
+        } else {
+            graph2d.setOptions(graph_options);
+            graph2d.setItems(graph_dataset);
+        }
     }
 }
 
